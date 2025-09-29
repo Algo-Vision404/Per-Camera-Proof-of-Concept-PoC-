@@ -1,0 +1,4 @@
+{
+  "ckpt": "artifacts\\models\\poc_checkpoint.pt",
+  "avg_loss": 2.648468315601349
+}

@@ -1,0 +1,8 @@
+{
+  "project": "Per-Camera PoC",
+  "kpis": {
+    "seg_mIoU": "TBD",
+    "det_AP": "TBD",
+    "depth_RMSE": "TBD"
+  }
+}
