@@ -67,6 +67,9 @@ for i in range(len(dataset)):
     axes[3].imshow(pred_depth, cmap="viridis")
     axes[3].set_title("Predicted Depth")
     axes[3].axis("off")
-
+    
+    save_path = ARTIFACTS/RESULTS_DIR/ f"sample_{i:03d}.png"
+    
+    plt.savefig(save_path, dpi=150)
     plt.tight_layout()
     plt.show()
