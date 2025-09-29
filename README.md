@@ -18,6 +18,7 @@ Per-Camera Proof-of-Concept (PoC) deep learning system capable of simultaneous o
 - Model training and evaluation on synthetic data.
 - Artifact generation: input images, segmentation masks, depth maps, and detection predictions.
 - Basic visualization for debugging and result analysis.
+- Differentiates between real world (1) and synthetic objects (0) by [0, 1]
 
 ### Out of Scope
 - Deployment on real-world multi-camera systems.
@@ -89,3 +90,5 @@ Per-Camera Proof-of-Concept (PoC) deep learning system capable of simultaneous o
 - Integrate evaluation metrics directly into training pipeline.
 
 ---
+## Disclaimer
+The per_camera_poc.py is designed to auto build the artifact folder so no need to recreate a folder for that
