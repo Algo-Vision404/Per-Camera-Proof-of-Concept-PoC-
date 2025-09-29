@@ -1,1 +1,0 @@
-Per-camera PoC artifacts. Replace synthetic data with real dataset and scale model/training.

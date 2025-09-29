@@ -1,52 +1,72 @@
-import os
 import json
-import csv
-import torch
-import numpy as np
-from PIL import Image
+from pathlib import Path
 import matplotlib.pyplot as plt
-from per_camera_poc import TinyPerCameraNet, PerCameraDataset, ARTIFACTS  # reuse your training code
+import torch
+import torch.nn.functional as F
+import numpy as np
+from per_camera_poc import TinyPerCameraNet, PerCameraDataset, ARTIFACTS
 
-CHECKPOINT_PATH = ARTIFACTS / "models/poc_checkpoint.pt"
-RESULTS_PATH = ARTIFACTS / "results/poc_results.json"
-PREDICTIONS_DIR = ARTIFACTS / "predictions"
-os.makedirs(PREDICTIONS_DIR, exist_ok=True)
+# --- Paths ---
+MODEL_DIR = ARTIFACTS / "models"
+RESULTS_DIR = ARTIFACTS / "results"
+DATA_DIR = ARTIFACTS / "synthetic_data"
 
-def load_checkpoint():
-    if not CHECKPOINT_PATH.exists():
-        raise FileNotFoundError(f"Checkpoint not found at {CHECKPOINT_PATH}")
-    ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu")
-    model = TinyPerCameraNet()
-    model.load_state_dict(ckpt["model_state"])
-    model.eval()
-    return model
+CHECKPOINT_PATH = MODEL_DIR / "poc_checkpoint.pt"
 
-def visualize_results():
-    # --- pick a sample image from synthetic dataset ---
-    manifest_csv = ARTIFACTS / "dataset_manifest.csv"
-    ds = PerCameraDataset(manifest_csv, max_samples=1)
-    sample = ds[0]
-    input_img = Image.fromarray((np.transpose(sample["image"].numpy(), (1, 2, 0)) * 255).astype(np.uint8))
-    gt_mask = Image.fromarray(sample["seg"].numpy().astype(np.uint8) * 255)
+# --- Load checkpoint ---
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = TinyPerCameraNet().to(device)
+checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
+model.load_state_dict(checkpoint["model_state"])
+model.eval()
 
-    # --- model prediction ---
-    model = load_checkpoint()
+# --- Load dataset (few examples for visualization) ---
+manifest_csv = ARTIFACTS / "dataset_manifest.csv"
+dataset = PerCameraDataset(manifest_csv, max_samples=5)  # just visualize 5 samples
+
+# --- Visualization ---
+for i in range(len(dataset)):
+    sample = dataset[i]
+    img = sample["image"].unsqueeze(0).to(device)
+    gt_seg = sample["seg"].numpy()
+    gt_depth = sample["depth"].squeeze(0).numpy()
+
     with torch.no_grad():
-        inp_tensor = sample["image"].unsqueeze(0)
-        out = model(inp_tensor)
-        pred_mask = out["seg"].argmax(dim=1).squeeze(0).numpy().astype(np.uint8)
-        pred_mask_img = Image.fromarray(pred_mask * 255)
+        out = model(img)
 
-    # --- visualize ---
-    fig, axs = plt.subplots(1, 3, figsize=(12, 4))
-    axs[0].imshow(input_img); axs[0].set_title("Input Image"); axs[0].axis("off")
-    axs[1].imshow(gt_mask, cmap="gray"); axs[1].set_title("Ground Truth"); axs[1].axis("off")
-    axs[2].imshow(pred_mask_img, cmap="viridis"); axs[2].set_title("Predicted"); axs[2].axis("off")
-    plt.tight_layout(); plt.show()
+        # Resize seg to match ground truth
+        seg_logits = F.interpolate(
+            out["seg"], size=gt_seg.shape, mode="bilinear", align_corners=False
+        )
+        pred_seg = torch.argmax(seg_logits, dim=1).squeeze(0).cpu().numpy()
 
-    # save predicted mask
-    pred_mask_img.save(PREDICTIONS_DIR / "predicted_mask.png")
-    print(f"Saved predicted mask → {PREDICTIONS_DIR}/predicted_mask.png")
+        # Resize depth to match
+        pred_depth = F.interpolate(
+            out["depth"], size=gt_depth.shape, mode="bilinear", align_corners=False
+        ).squeeze(0).squeeze(0).cpu().numpy()
 
-if __name__ == "__main__":
-    visualize_results()
+    # Debug info: unique values
+    print(f"Sample {i}")
+    print(" GT Seg unique:", np.unique(gt_seg))
+    print(" Pred Seg unique:", np.unique(pred_seg))
+
+    # Plot
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+    axes[0].imshow(sample["image"].permute(1, 2, 0).numpy())
+    axes[0].set_title("Input Image")
+    axes[0].axis("off")
+
+    axes[1].imshow(gt_seg, cmap="gray")
+    axes[1].set_title("Ground Truth Segmentation")
+    axes[1].axis("off")
+
+    axes[2].imshow(pred_seg, cmap="gray")
+    axes[2].set_title("Predicted Segmentation")
+    axes[2].axis("off")
+
+    axes[3].imshow(pred_depth, cmap="viridis")
+    axes[3].set_title("Predicted Depth")
+    axes[3].axis("off")
+
+    plt.tight_layout()
+    plt.show()

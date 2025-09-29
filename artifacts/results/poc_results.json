@@ -1,4 +1,4 @@
 {
-  "ckpt": "artifacts\\models\\poc_checkpoint.pt",
-  "avg_loss": 2.648468315601349
+  "ckpt": "C:\\Users\\hp\\Per-Camera Proof-of-Concept\\artifacts\\models\\poc_checkpoint.pt",
+  "avg_loss": 1.8979230262339115
 }
