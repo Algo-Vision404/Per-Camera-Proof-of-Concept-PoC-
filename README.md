@@ -34,8 +34,17 @@ Per-Camera Proof-of-Concept (PoC) deep learning system capable of simultaneous o
 
 ---
 
-## Sample Visualization test
-![Test](artifacts/results/poc_visualization.png)
+### Sample 1
+![Visualization 1](artifacts/results/sample_000.png)
+
+### Sample 2
+![Visualization 2](artifacts/results/sample_001.png)
+
+### Sample 3
+![Visualization 3](artifacts/results/sample_002.png)
+
+### Sample 4
+![Visualization 4](artifacts/results/sample_003.png)
 
 ---
 
