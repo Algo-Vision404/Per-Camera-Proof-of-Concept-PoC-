@@ -48,7 +48,6 @@ Per-Camera Proof-of-Concept (PoC) deep learning system capable of simultaneous o
 ![Visualization 4](artifacts/results/sample_003.png)
 
 ---
-
 ## Key Performance Indicators (KPIs)
 - **Segmentation mIoU:** TBD (Mean Intersection over Union on synthetic dataset)
 - **Detection AP:** TBD (Average Precision for bounding boxes)
@@ -90,5 +89,5 @@ Per-Camera Proof-of-Concept (PoC) deep learning system capable of simultaneous o
 - Integrate evaluation metrics directly into training pipeline.
 
 ---
-## Disclaimer
+# Disclaimer‼️
 The per_camera_poc.py is designed to auto build the artifact folder so no need to recreate a folder for that
